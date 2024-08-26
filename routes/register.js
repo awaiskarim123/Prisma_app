@@ -1,4 +1,4 @@
-"use strict";
+// "use strict";
 
 // routes/register.js
 const { PrismaClient } = require('@prisma/client');
@@ -6,7 +6,10 @@ const prismaClient = new PrismaClient();
 
 module.exports = async function (fastify, options) {
   fastify.post('/register', async (request, reply) => {
+    console.log('hitting the route')
+
     const { email, password, username } = request.body;
+    console.log(request.body);
 
     try {
       const user = await prismaClient.user.create({
@@ -19,11 +22,12 @@ module.exports = async function (fastify, options) {
 
       reply.send({ success: true, user });
     } catch (error) {
+      console.error(error); // Log the exact error
       if (error.code === 'P2002') {
         reply.status(400).send({ error: 'Email already exists' });
       } else {
         reply.status(500).send({ error: 'Internal Server Error' });
       }
-    }
+    }    
   });
 };

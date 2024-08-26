@@ -1,6 +1,8 @@
 // server.js
 const fastify = require('fastify')({ logger: true });
-fastify.register(require('@fastify/formbody'));
+// fastify.register(require('@fastify/formbody'));
+fastify.register(require('@fastify/multipart'));
+
 
 // Register routes
 fastify.register(require('./routes/register'));
