@@ -1,13 +1,11 @@
-// server.js
 const fastify = require('fastify')({ logger: true });
-// fastify.register(require('@fastify/formbody'));
 fastify.register(require('@fastify/multipart'));
 
-
-// Register routes
+// Registering routes
 fastify.register(require('./routes/register'));
+fastify.register(require('./routes/login')); // Registering the login route
 
-// Start the server
+// Starting the server
 const start = async () => {
   try {
     await fastify.listen({ port: 3000 });
