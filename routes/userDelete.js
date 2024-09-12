@@ -1,30 +1,28 @@
-const bcrypt = require('bcrypt');
 const { PrismaClient } = require('@prisma/client');
 const prismaClient = new PrismaClient();
 
 module.exports = async function (fastify, options) {
-  fastify.delete('/deleteUser', async (request, reply) => {
-    const { email, password } = request.body;
+  fastify.delete('/deleteUser/:id', {
+    preValidation: [fastify.authenticate], // Protecting the route with authentication
+  }, async (request, reply) => {
+    const userId = parseInt(request.params.id, 10);
+
+    if (isNaN(userId)) {
+      return reply.status(400).send({ error: 'Invalid user ID' });
+    }
 
     try {
       const user = await prismaClient.user.findUnique({
-        where: { email },
+        where: { id: userId },
       });
 
       if (!user) {
         return reply.status(404).send({ error: 'User not found' });
       }
 
-      // Validating the provided password with the stored password
-      const isPasswordValid = await bcrypt.compare(password, user.password);
-
-      if (!isPasswordValid) {
-        return reply.status(400).send({ error: 'Invalid password' });
-      }
-
-      // Deleting the user
+      // Deleting the user by ID
       await prismaClient.user.delete({
-        where: { email },
+        where: { id: userId },
       });
 
       reply.send({ success: true, message: 'User deleted successfully' });
