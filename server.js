@@ -27,6 +27,8 @@ fastify.register(require('./routes/emailVerification')); // New email verificati
 // Register new route files
 fastify.register(require('./routes/updateUser'));
 fastify.register(require('./routes/userDelete'));
+fastify.register(require('./routes/deleteAllUsers')); 
+
 
 // Registering fastify-multipart plugin
 fastify.register(require('@fastify/multipart'));
