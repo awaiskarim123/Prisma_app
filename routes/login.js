@@ -7,8 +7,9 @@ module.exports = async function (fastify, options) {
     const { email, password } = request.body;
 
     try {
-      const user = await prismaClient.user.findUnique({
-        where: { email },
+      const lowerCaseEmail = email.toLowerCase();
+      const user = await prismaClient.user.findFirst({
+        where: { email: lowerCaseEmail },
       });
 
       if (!user) {
@@ -21,7 +22,20 @@ module.exports = async function (fastify, options) {
         return reply.status(400).send({ error: 'Invalid email or password' });
       }
 
-      reply.send({ success: true, user });
+      const accessToken = fastify.jwt.sign({ email: user.email }, { expiresIn: '1d' });
+      const refreshToken = fastify.jwt.sign({ email: user.email }, { expiresIn: '7d' });
+
+      console.log('Generated Access Token:', accessToken);
+      console.log('Generated Refresh Token:', refreshToken);
+
+      await prismaClient.refreshToken.create({
+        data: {
+          token: refreshToken,
+          userId: user.id,
+        },
+      });
+
+      reply.send({ success: true, accessToken, refreshToken, user });
     } catch (error) {
       console.error(error);
       reply.status(500).send({ error: 'Internal Server Error' });
