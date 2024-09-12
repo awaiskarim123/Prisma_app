@@ -3,34 +3,32 @@ const { PrismaClient } = require('@prisma/client');
 const prismaClient = new PrismaClient();
 
 module.exports = async function (fastify, options) {
-  // User registration route
-  fastify.post('/register', async (request, reply) => {
+  // User update route
+  fastify.put('/updateUser', async (request, reply) => {
     const { email, password, username } = request.body;
 
     try {
-      // Check if the user already exists by email
       const existingUser = await prismaClient.user.findUnique({
         where: { email },
       });
 
-      if (existingUser) {
-        return reply.status(400).send({ error: 'User already exists. Consider updating instead.' });
+      if (!existingUser) {
+        return reply.status(404).send({ error: 'User not found. Please register first.' });
       }
 
-      // Hash the password using bcrypt
+      // Hash the new password using bcrypt
       const hashedPassword = await bcrypt.hash(password, 10);
 
-      // Create a new user in the database
-      const user = await prismaClient.user.create({
+      // Update the user's details
+      const updatedUser = await prismaClient.user.update({
+        where: { email },
         data: {
-          email,
-          password: hashedPassword,
           username,
-          emailVerified: false,  // Default to email not verified
+          password: hashedPassword,
         },
       });
 
-      reply.send({ success: true, message: 'User registered successfully', user });
+      reply.send({ success: true, message: 'User updated successfully', user: updatedUser });
     } catch (error) {
       // Log the error for debugging
       console.error(error);
